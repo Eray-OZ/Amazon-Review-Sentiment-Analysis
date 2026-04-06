@@ -39,7 +39,7 @@ def custom_standardization(input_data):
     return tf.strings.regex_replace(stripped, '[%s]' % re.escape(string.punctuation), '')
 
 # Yeni eğittiğin modelin adı
-MODEL_PATH = "model/train4_epoch3_ysa.keras" 
+MODEL_PATH = "model/train5irony_epoch4_ysa.keras" 
 
 print("YSA Hibrit Modeli yükleniyor, lütfen bekleyin...")
 model = keras.models.load_model(MODEL_PATH)
