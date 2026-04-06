@@ -46,7 +46,7 @@ def custom_standardization(input_data):
     return tf.strings.regex_replace(stripped, '[%s]' % re.escape(string.punctuation), '')
 
 # Modeli Yükle
-MODEL_PATH = "models/amazon_model_epoch5.keras" 
+MODEL_PATH = "model/amazon_model_epoch5.keras" 
 
 print("Model yükleniyor, Keras boyut ve güvenlik yamaları devrede...")
 model = keras.models.load_model(MODEL_PATH)
