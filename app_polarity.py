@@ -1,13 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import tensorflow as tf
 import keras
-import numpy as np
 import string
 import re
 
 app = Flask(__name__)
 
-# --- KRİTİK YAMA (MONKEY PATCH) GÜNCELLEMESİ ---
 original_set_vocab = keras.layers.StringLookup.set_vocabulary
 
 def safe_set_vocabulary(self, vocabulary, *args, **kwargs):
@@ -23,21 +21,16 @@ def safe_set_vocabulary(self, vocabulary, *args, **kwargs):
                 dummy_val = f"{val}_dummy_{i}"
                 clean_vocab.append(dummy_val.encode('utf-8') if isinstance(item, bytes) else dummy_val)
         
-        # YENİ EKLENEN KISIM: Boyut Sınırlandırması
-        # Keras'ın kendi eklediği 2 fazladan kelimeyi (20002'yi) 
-        # modelin beklediği max_tokens (20000) sınırına kırpıyoruz.
         max_limit = getattr(self, 'max_tokens', 20000)
         if max_limit is not None and len(clean_vocab) > max_limit:
             clean_vocab = clean_vocab[:max_limit]
-        elif len(clean_vocab) > 20000: # Garanti önlem
+        elif len(clean_vocab) > 20000: 
             clean_vocab = clean_vocab[:20000]
             
         vocabulary = clean_vocab
-
     return original_set_vocab(self, vocabulary, *args, **kwargs)
 
 keras.layers.StringLookup.set_vocabulary = safe_set_vocabulary
-# --- KRİTİK YAMA BİTİŞİ ---
 
 @keras.saving.register_keras_serializable()
 def custom_standardization(input_data):
@@ -45,12 +38,12 @@ def custom_standardization(input_data):
     stripped = tf.strings.regex_replace(lowercase, '<br />', ' ')
     return tf.strings.regex_replace(stripped, '[%s]' % re.escape(string.punctuation), '')
 
-# Modeli Yükle
-MODEL_PATH = "model/train3_epoch3.keras" 
+# Yeni eğittiğin modelin adı
+MODEL_PATH = "model/train4_epoch3_ysa.keras" 
 
-print("Model yükleniyor, Keras boyut ve güvenlik yamaları devrede...")
+print("YSA Hibrit Modeli yükleniyor, lütfen bekleyin...")
 model = keras.models.load_model(MODEL_PATH)
-print("Model BAŞARIYLA yüklendi!")
+print("Model başarıyla yüklendi!")
 
 @app.route('/')
 def home():
@@ -65,8 +58,10 @@ def predict():
         if not review_text:
             return jsonify({'error': 'Lütfen bir yorum girin.'}), 400
             
+        # Numpy yerine TensorFlow Tensor formatı
         input_tensor = tf.constant([review_text], dtype=tf.string)
         prediction = model.predict(input_tensor)
+        
         score = float(prediction[0][0])
         
         if score > 0.5:
